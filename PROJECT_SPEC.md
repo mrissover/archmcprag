@@ -9,7 +9,7 @@ This project implements a Model Context Protocol (MCP) server that provides sema
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Language | TypeScript | Best MCP SDK support (Anthropic's official SDK is TypeScript-first), strong typing for MCP tool schemas, mature ecosystem |
-| Vector Database | Qdrant or Chroma | Self-hostable, no Azure dependency for this component, easy local development |
+| Vector Database | Qdrant (primary) | Rust-based performance, strong filtering for category/tags, typed payload schemas, production-ready. Chroma adapter available as fallback. |
 | Transport | Streamable HTTP | Central server for all developers, single source of truth, easier GitLab sync |
 | Embedding Model | OpenAI `text-embedding-3-small` or open-source alternative | Cost-effective, good performance for documentation |
 
@@ -463,8 +463,6 @@ bearer_token_env_var = "ARCH_DOCS_TOKEN"
 ## Docker Compose (Local Development)
 
 ```yaml
-version: '3.8'
-
 services:
   mcp-server:
     build:
@@ -516,23 +514,23 @@ volumes:
 ```json
 {
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "openai": "^4.0.0",
-    "@qdrant/js-client-rest": "^1.0.0",
-    "chromadb": "^1.0.0",
-    "marked": "^12.0.0",
+    "@modelcontextprotocol/sdk": "^1.25.0",
+    "openai": "^6.16.0",
+    "@qdrant/js-client-rest": "^1.13.0",
+    "chromadb": "^3.2.0",
+    "marked": "^15.0.0",
     "gray-matter": "^4.0.0",
     "tiktoken": "^1.0.0",
-    "express": "^4.18.0",
+    "express": "^5.0.0",
     "dotenv": "^16.0.0",
-    "pino": "^8.0.0"
+    "pino": "^9.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/express": "^4.17.0",
-    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/express": "^5.0.0",
+    "typescript": "^5.7.0",
     "tsx": "^4.0.0",
-    "vitest": "^1.0.0"
+    "vitest": "^4.0.0"
   }
 }
 ```
