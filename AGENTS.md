@@ -6,10 +6,11 @@ MCP server providing semantic search access to architectural design documents fr
 
 ## Tech Stack
 
-- **Language:** TypeScript (Node.js)
-- **Vector DB:** Qdrant or Chroma
-- **Transport:** Streamable HTTP
+- **Language:** TypeScript (Node.js 18+)
+- **Vector DB:** Qdrant (primary), Chroma (fallback)
+- **Transport:** Streamable HTTP (MCP protocol)
 - **Embeddings:** OpenAI `text-embedding-3-small`
+- **Validation:** Zod schemas
 
 ## Key Directories
 
