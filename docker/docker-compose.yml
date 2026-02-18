@@ -1,10 +1,9 @@
 services:
   mcp-server:
+    network_mode: host
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    ports:
-      - "3000:3000"
     env_file:
       - .env
     environment:
