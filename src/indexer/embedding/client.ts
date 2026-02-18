@@ -15,6 +15,7 @@ export function createEmbeddingClient(): EmbeddingClient {
 function createOpenAIClient(): EmbeddingClient {
   const client = new OpenAI({
     apiKey: config.embedding.openai.apiKey,
+    ...(config.embedding.openai.baseUrl ? { baseURL: config.embedding.openai.baseUrl } : {}),
   });
 
   return {
