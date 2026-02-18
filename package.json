@@ -13,7 +13,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "build:docker": "docker build -f docker/Dockerfile -t arch-docs-mcp:latest ."
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.0",
