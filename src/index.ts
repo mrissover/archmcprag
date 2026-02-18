@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
@@ -25,12 +26,13 @@ async function runInitialLoad(): Promise<void> {
   }
 }
 
-/**
- * Creates a fresh MCP server with all tools registered.
- * Called per-request because the MCP SDK's stateless transport
- * requires a new server+transport pair for each request.
- */
-function createMcpServer(): McpServer {
+export async function startServer(): Promise<ReturnType<express.Application['listen']>> {
+  // Initialize vector store at startup
+  const vectorStore = await getVectorStore();
+  await vectorStore.initialize();
+  logger.info('Vector store initialized');
+
+  // Create MCP server and register tools
   const server = new McpServer({
     name: 'arch-docs-mcp',
     version: '1.0.0',
@@ -75,14 +77,12 @@ function createMcpServer(): McpServer {
     }
   );
 
-  return server;
-}
-
-export async function startServer(): Promise<ReturnType<express.Application['listen']>> {
-  // Initialize vector store at startup
-  const vectorStore = await getVectorStore();
-  await vectorStore.initialize();
-  logger.info('Vector store initialized');
+  // Stateful transport — session IDs allow the multi-step MCP handshake
+  // (initialize → initialized → tools/list) to work across HTTP requests
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
+  });
+  await server.connect(transport);
 
   // Create Express app
   const app = express();
@@ -95,29 +95,9 @@ export async function startServer(): Promise<ReturnType<express.Application['lis
     res.json({ status: 'ok', service: 'arch-docs-mcp' });
   });
 
-  // MCP endpoint — stateless mode requires a fresh server+transport per request
-  app.post('/mcp', async (req, res) => {
-    const server = createMcpServer();
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
-
-    res.on('close', () => {
-      transport.close();
-      server.close();
-    });
-
-    await server.connect(transport);
+  // MCP endpoint (GET for SSE stream, POST for messages, DELETE for session close)
+  app.all('/mcp', async (req, res) => {
     await transport.handleRequest(req, res, req.body);
-  });
-
-  // GET and DELETE not supported in stateless mode
-  app.get('/mcp', (_req, res) => {
-    res.status(405).json({ error: 'Method not allowed in stateless mode' });
-  });
-
-  app.delete('/mcp', (_req, res) => {
-    res.status(405).json({ error: 'Method not allowed in stateless mode' });
   });
 
   // GitLab webhook endpoint
