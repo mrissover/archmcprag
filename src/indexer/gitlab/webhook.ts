@@ -59,7 +59,7 @@ export async function handleWebhook(payload: GitLabWebhookPayload, deps?: SyncDe
       const file = await gitlab.getFile(path);
       await syncFile(file, deps);
     } catch (error) {
-      logger.error({ path, error }, 'Failed to sync file');
+      logger.error({ path, err: error }, 'Failed to sync file');
     }
   }
 

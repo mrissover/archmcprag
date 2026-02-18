@@ -20,7 +20,7 @@ async function runInitialLoad(): Promise<void> {
     logger.info('Initial load complete');
     process.exit(0);
   } catch (error) {
-    logger.error({ error }, 'Initial load failed');
+    logger.error({ err: error }, 'Initial load failed');
     process.exit(1);
   }
 }
@@ -125,12 +125,12 @@ export async function startServer(): Promise<ReturnType<express.Application['lis
 
       // Process webhook asynchronously
       handleWebhook(payload).catch(error => {
-        logger.error({ error }, 'Webhook processing failed');
+        logger.error({ err: error }, 'Webhook processing failed');
       });
 
       res.json({ status: 'accepted' });
     } catch (error) {
-      logger.error({ error }, 'Webhook handler error');
+      logger.error({ err: error }, 'Webhook handler error');
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -159,6 +159,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  logger.error({ error }, 'Failed to start');
+  logger.error({ err: error }, 'Failed to start');
   process.exit(1);
 });

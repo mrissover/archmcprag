@@ -105,7 +105,7 @@ export class GitLabClient {
         const file = await this.getFile(path);
         files.push(file);
       } catch (error) {
-        logger.error({ path, error }, 'Failed to fetch file');
+        logger.error({ path, err: error }, 'Failed to fetch file');
       }
     }
 
