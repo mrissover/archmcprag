@@ -5,20 +5,13 @@ services:
       dockerfile: docker/Dockerfile
     ports:
       - "3000:3000"
+    env_file:
+      - ../.env
     environment:
       - PORT=3000
       - HOST=0.0.0.0
       - VECTOR_STORE=qdrant
       - QDRANT_URL=http://qdrant:6333
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - AUTH_TOKENS=${AUTH_TOKENS}
-      - GITLAB_URL=${GITLAB_URL}
-      - GITLAB_PROJECT_ID=${GITLAB_PROJECT_ID}
-      - GITLAB_ACCESS_TOKEN=${GITLAB_ACCESS_TOKEN}
-      - GITLAB_BRANCH=${GITLAB_BRANCH:-main}
-      - GITLAB_WEBHOOK_SECRET=${GITLAB_WEBHOOK_SECRET}
-      - CHUNK_SIZE=${CHUNK_SIZE:-1500}
-      - CHUNK_OVERLAP=${CHUNK_OVERLAP:-100}
     depends_on:
       qdrant:
         condition: service_healthy
@@ -44,14 +37,11 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     command: ["node", "dist/index.js", "--initial-load"]
+    env_file:
+      - ../.env
     environment:
       - VECTOR_STORE=qdrant
       - QDRANT_URL=http://qdrant:6333
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - GITLAB_URL=${GITLAB_URL}
-      - GITLAB_PROJECT_ID=${GITLAB_PROJECT_ID}
-      - GITLAB_ACCESS_TOKEN=${GITLAB_ACCESS_TOKEN}
-      - GITLAB_BRANCH=${GITLAB_BRANCH:-main}
     depends_on:
       qdrant:
         condition: service_healthy
