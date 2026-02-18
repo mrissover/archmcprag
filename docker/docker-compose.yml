@@ -53,7 +53,10 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      disable: true
+      test: ["CMD-SHELL", "wget -qO- http://localhost:6333/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   # Optional: Run initial indexing
@@ -62,7 +65,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    command: ["sh", "-c", "sleep 10 && node dist/index.js --initial-load"]
+    command: ["node", "dist/index.js", "--initial-load"]
     env_file:
       - .env
     environment:
@@ -70,7 +73,7 @@ services:
       - QDRANT_URL=http://localhost:6333
     depends_on:
       qdrant:
-        condition: service_started
+        condition: service_healthy
       ollama-pull:
         condition: service_completed_successfully
     profiles:
