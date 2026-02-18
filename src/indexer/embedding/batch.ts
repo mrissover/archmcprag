@@ -9,7 +9,7 @@ export async function embedChunks(
   const embeddings = await client.embedBatch(texts);
 
   return chunks.map((chunk, i) => ({
-    id: chunk.chunk_id,
+    id: chunkIdToUuid(chunk.chunk_id),
     vector: embeddings[i],
     payload: chunk,
   }));
@@ -17,6 +17,11 @@ export async function embedChunks(
 
 export function generateChunkId(documentPath: string, chunkIndex: number): string {
   return `${documentPath}#chunk-${chunkIndex}`;
+}
+
+export function chunkIdToUuid(chunkId: string): string {
+  const hex = createHash('sha256').update(chunkId).digest('hex').slice(0, 32);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
 }
 
 export function generateContentHash(content: string): string {
