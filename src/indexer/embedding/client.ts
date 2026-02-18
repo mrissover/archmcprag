@@ -19,6 +19,7 @@ function createOllamaClient(): EmbeddingClient {
   const client = new OpenAI({
     apiKey: 'ollama',
     baseURL: `${config.embedding.ollama.url}/v1`,
+    timeout: 5 * 60 * 1000, // 5 minutes — local models are slow
   });
   const model = config.embedding.ollama.model;
 
@@ -31,7 +32,8 @@ function createOllamaClient(): EmbeddingClient {
     async embedBatch(texts: string[]): Promise<number[][]> {
       if (texts.length === 0) return [];
 
-      const batchSize = 100;
+      // Small batches for local models — Ollama is much slower than cloud APIs
+      const batchSize = 10;
       const results: number[][] = [];
 
       for (let i = 0; i < texts.length; i += batchSize) {
