@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
@@ -88,20 +89,16 @@ export async function startServer(): Promise<ReturnType<express.Application['lis
     res.json({ status: 'ok', service: 'arch-docs-mcp' });
   });
 
-  // MCP transport (stateless — one transport, connected once)
+  // MCP transport — stateful mode so the multi-step handshake
+  // (initialize → initialized → tools/list) works across requests
   const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
+    sessionIdGenerator: () => randomUUID(),
   });
   await server.connect(transport);
 
-  // MCP endpoint
+  // MCP endpoint (GET for SSE stream, POST for messages, DELETE for session close)
   app.all('/mcp', async (req, res) => {
     await transport.handleRequest(req, res, req.body);
-  });
-
-  // Handle MCP session management
-  app.delete('/mcp', async (_req, res) => {
-    res.status(200).json({ status: 'session closed' });
   });
 
   // GitLab webhook endpoint
