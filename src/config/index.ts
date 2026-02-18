@@ -40,6 +40,7 @@ export const config = {
     provider: optional('EMBEDDING_PROVIDER', 'openai') as 'openai' | 'azure',
     openai: {
       apiKey: process.env.OPENAI_API_KEY,
+      baseUrl: process.env.OPENAI_BASE_URL,
       model: 'text-embedding-3-small',
     },
     azure: {
