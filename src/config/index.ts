@@ -23,8 +23,6 @@ export const config = {
   // Server
   port: optionalInt('PORT', 3000),
   host: optional('HOST', '0.0.0.0'),
-  authTokens: optional('AUTH_TOKENS', '').split(',').filter(Boolean),
-
   // Vector Store
   vectorStore: optional('VECTOR_STORE', 'qdrant') as 'qdrant' | 'chroma',
   qdrant: {

@@ -22,7 +22,6 @@ vi.mock('../config/index.js', () => ({
   config: {
     port: 0,
     host: '0.0.0.0',
-    authTokens: [],
     vectorStore: 'qdrant' as const,
     gitlab: {
       webhookSecret: undefined,
