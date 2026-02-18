@@ -37,18 +37,22 @@ export const config = {
 
   // Embeddings
   embedding: {
-    provider: optional('EMBEDDING_PROVIDER', 'openai') as 'openai' | 'azure',
+    provider: optional('EMBEDDING_PROVIDER', 'openai') as 'openai' | 'azure' | 'ollama',
     openai: {
       apiKey: process.env.OPENAI_API_KEY,
       baseUrl: process.env.OPENAI_BASE_URL,
-      model: optional('EMBEDDING_MODEL', 'text-embedding-3-small'),
+      model: 'text-embedding-3-small',
     },
     azure: {
       endpoint: process.env.AZURE_OPENAI_ENDPOINT,
       apiKey: process.env.AZURE_OPENAI_API_KEY,
       deployment: process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT,
     },
-    dimensions: optionalInt('EMBEDDING_DIMENSIONS', 1536),
+    ollama: {
+      url: optional('OLLAMA_URL', 'http://localhost:11434'),
+      model: optional('OLLAMA_EMBEDDING_MODEL', 'mxbai-embed-large'),
+    },
+    dimensions: optionalInt('EMBEDDING_DIMENSIONS', 1024),
   },
 
   // GitLab

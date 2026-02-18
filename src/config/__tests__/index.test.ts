@@ -69,6 +69,16 @@ describe('config', () => {
     expect(config.qdrant.apiKey).toBe('qdrant-key');
   });
 
+  it('reads Ollama configuration', async () => {
+    vi.stubEnv('EMBEDDING_PROVIDER', 'ollama');
+    vi.stubEnv('OLLAMA_URL', 'http://ollama:11434');
+    vi.stubEnv('OLLAMA_EMBEDDING_MODEL', 'nomic-embed-text');
+    const config = await loadConfig();
+    expect(config.embedding.provider).toBe('ollama');
+    expect(config.embedding.ollama.url).toBe('http://ollama:11434');
+    expect(config.embedding.ollama.model).toBe('nomic-embed-text');
+  });
+
   it('reads Azure OpenAI configuration', async () => {
     vi.stubEnv('AZURE_OPENAI_ENDPOINT', 'https://azure.test.com');
     vi.stubEnv('AZURE_OPENAI_API_KEY', 'azure-key');
