@@ -50,7 +50,7 @@ export const config = {
     },
     ollama: {
       url: optional('OLLAMA_URL', 'http://localhost:11434'),
-      model: optional('OLLAMA_EMBEDDING_MODEL', 'mxbai-embed-large'),
+      model: optional('OLLAMA_EMBEDDING_MODEL', 'bge-m3'),
     },
     dimensions: optionalInt('EMBEDDING_DIMENSIONS', 1024),
   },
