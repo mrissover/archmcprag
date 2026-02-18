@@ -12,9 +12,12 @@ const mockCollection = {
   get: mockGet,
 };
 
+const mockDeleteCollection = vi.fn();
+
 vi.mock('chromadb', () => ({
   ChromaClient: class MockChromaClient {
     getOrCreateCollection = vi.fn().mockResolvedValue(mockCollection);
+    deleteCollection = mockDeleteCollection;
     constructor() {}
   },
 }));
@@ -41,6 +44,16 @@ describe('ChromaStore', () => {
       const store = await createChromaStore();
       await store.initialize();
       expect(store).toBeDefined();
+    });
+  });
+
+  describe('reset', () => {
+    it('deletes collection and reinitializes', async () => {
+      const store = await createChromaStore();
+      await store.initialize();
+      await store.reset();
+
+      expect(mockDeleteCollection).toHaveBeenCalledWith({ name: 'architecture_docs' });
     });
   });
 

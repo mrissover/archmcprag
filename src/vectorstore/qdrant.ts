@@ -47,6 +47,18 @@ export async function createQdrantStore(): Promise<VectorStore> {
       }
     },
 
+    async reset(): Promise<void> {
+      const collections = await client.getCollections();
+      const exists = collections.collections.some(c => c.name === collectionName);
+
+      if (exists) {
+        logger.info(`Dropping collection: ${collectionName}`);
+        await client.deleteCollection(collectionName);
+      }
+
+      await store.initialize();
+    },
+
     async upsert(records: VectorRecord[]): Promise<void> {
       if (records.length === 0) return;
 

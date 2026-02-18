@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockVectorStore = {
   initialize: vi.fn(),
+  reset: vi.fn(),
   upsert: vi.fn(),
   search: vi.fn(),
   delete: vi.fn(),

@@ -21,7 +21,7 @@ export async function fullSync(deps?: SyncDeps): Promise<void> {
   const vectorStore = deps?.vectorStore ?? await createVectorStore(config.vectorStore);
   const embeddingClient = deps?.embeddingClient ?? createEmbeddingClient();
 
-  await vectorStore.initialize();
+  await vectorStore.reset();
 
   // Get all markdown files
   const filePaths = await gitlab.listMarkdownFiles();

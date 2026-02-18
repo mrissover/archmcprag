@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const { mockVectorStore, mockEmbeddingClient, mockListMarkdownFiles, mockGetFiles, mockGetFile } = vi.hoisted(() => ({
   mockVectorStore: {
     initialize: vi.fn(),
+    reset: vi.fn(),
     upsert: vi.fn(),
     search: vi.fn(),
     delete: vi.fn(),
@@ -79,21 +80,21 @@ describe('fullSync', () => {
 
     await fullSync();
 
-    expect(mockVectorStore.initialize).toHaveBeenCalled();
+    expect(mockVectorStore.reset).toHaveBeenCalled();
     expect(mockListMarkdownFiles).toHaveBeenCalled();
     expect(mockGetFiles).toHaveBeenCalled();
     expect(mockVectorStore.upsert).toHaveBeenCalled();
   });
 
   it('accepts injected dependencies', async () => {
-    const customVS = { ...mockVectorStore, initialize: vi.fn(), upsert: vi.fn() };
+    const customVS = { ...mockVectorStore, reset: vi.fn(), upsert: vi.fn() };
     const customEC = { embed: vi.fn(), embedBatch: vi.fn() };
 
     mockListMarkdownFiles.mockResolvedValue([]);
 
     await fullSync({ vectorStore: customVS, embeddingClient: customEC });
 
-    expect(customVS.initialize).toHaveBeenCalled();
+    expect(customVS.reset).toHaveBeenCalled();
   });
 
   it('handles empty file list', async () => {
