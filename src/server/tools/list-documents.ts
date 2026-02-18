@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { createVectorStore } from '../../vectorstore/interface.js';
-import { config } from '../../config/index.js';
+import { getVectorStore } from '../../shared.js';
 import type { ListDocumentsResponse } from '../../types/index.js';
 
 export const listDocumentsSchema = z.object({
@@ -11,7 +10,7 @@ export const listDocumentsSchema = z.object({
 export type ListDocumentsInput = z.infer<typeof listDocumentsSchema>;
 
 export async function listDocuments(input: ListDocumentsInput): Promise<ListDocumentsResponse> {
-  const vectorStore = await createVectorStore(config.vectorStore);
+  const vectorStore = await getVectorStore();
 
   const documents = await vectorStore.listDocuments(input.category);
 

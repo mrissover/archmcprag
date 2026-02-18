@@ -3,16 +3,16 @@
   "version": "1.0.0",
   "description": "MCP server providing semantic search access to architectural design documents",
   "type": "module",
-  "main": "dist/server/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/server/index.ts",
-    "start": "node dist/server/index.js",
-    "indexer": "tsx src/indexer/index.ts",
-    "initial-load": "tsx scripts/initial-load.ts",
-    "reindex": "tsx scripts/reindex.ts",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "initial-load": "tsx src/index.ts --initial-load",
+    "reindex": "tsx src/index.ts --reindex",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -31,6 +31,7 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "tsx": "^4.0.0",
     "typescript": "^5.7.0",
     "vitest": "^4.0.0"

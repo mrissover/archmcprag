@@ -1,6 +1,7 @@
 import { createHmac } from 'crypto';
 import { GitLabClient } from './client.js';
 import { syncFile, deleteFile } from './sync.js';
+import type { SyncDeps } from './sync.js';
 import { config } from '../../config/index.js';
 import type { GitLabWebhookPayload } from '../../types/index.js';
 import pino from 'pino';
@@ -20,7 +21,7 @@ export function verifyWebhookSignature(payload: string, signature: string): bool
   return signature === expected;
 }
 
-export async function handleWebhook(payload: GitLabWebhookPayload): Promise<void> {
+export async function handleWebhook(payload: GitLabWebhookPayload, deps?: SyncDeps): Promise<void> {
   const gitlab = new GitLabClient();
 
   // Collect all changed markdown files
@@ -48,7 +49,7 @@ export async function handleWebhook(payload: GitLabWebhookPayload): Promise<void
 
   // Process removals
   for (const path of removed) {
-    await deleteFile(path);
+    await deleteFile(path, deps);
   }
 
   // Process additions and modifications
@@ -56,7 +57,7 @@ export async function handleWebhook(payload: GitLabWebhookPayload): Promise<void
   for (const path of toSync) {
     try {
       const file = await gitlab.getFile(path);
-      await syncFile(file);
+      await syncFile(file, deps);
     } catch (error) {
       logger.error({ path, error }, 'Failed to sync file');
     }

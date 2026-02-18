@@ -11,6 +11,7 @@ This server indexes your organization's architecture documentation (ADRs, API sp
 3. **Embeds** chunks using OpenAI embeddings
 4. **Stores** vectors in Qdrant for fast similarity search
 5. **Serves** queries via MCP protocol over HTTP
+6. **Listens** for GitLab webhooks to auto-update on push
 
 Developers can then ask questions like:
 - "How does our authentication system work?"
@@ -52,7 +53,7 @@ AUTH_TOKENS=your-secret-token-1,your-secret-token-2
 ### 2. Start Services
 
 ```bash
-# Start Qdrant and the MCP server
+# Start Qdrant and the app
 cd docker
 docker-compose up -d
 
@@ -79,23 +80,20 @@ docker-compose up -d
 ```
 
 This starts:
-- **MCP Server** on port 3000
-- **Indexer** (webhook listener) on port 3001
+- **App** (MCP server + webhook listener) on port 3000
 - **Qdrant** on ports 6333/6334
 
 ### Option B: Kubernetes
 
 For production deployments, create deployments for:
 1. Qdrant (or use Qdrant Cloud)
-2. MCP Server (stateless, can scale horizontally)
-3. Indexer (single replica, handles webhooks)
+2. App (stateless, can scale horizontally)
 
 ### Option C: Local Development
 
 ```bash
 npm install
-npm run dev          # Start MCP server with hot reload
-npm run indexer      # Start webhook listener (separate terminal)
+npm run dev          # Start server with hot reload (MCP + webhooks on port 3000)
 npm run initial-load # Index documents once
 ```
 
@@ -210,10 +208,10 @@ List all available documents.
 
 ### Automatic Updates (Recommended)
 
-Configure a GitLab webhook to notify the indexer when documents change:
+Configure a GitLab webhook to notify the server when documents change:
 
 1. In GitLab, go to **Settings > Webhooks**
-2. Add webhook URL: `http://your-server:3001/webhook`
+2. Add webhook URL: `http://your-server:3000/webhook`
 3. Set secret token (same as `GITLAB_WEBHOOK_SECRET` in your env)
 4. Select **Push events** trigger
 
@@ -224,7 +222,7 @@ Configure a GitLab webhook to notify the indexer when documents change:
 npm run reindex
 
 # Using Docker
-docker-compose run mcp-server npm run reindex
+docker-compose --profile init run initial-load
 ```
 
 ## Architecture
@@ -240,12 +238,12 @@ docker-compose run mcp-server npm run reindex
                      │
                      ▼
          ┌───────────────────────┐
-         │     MCP Server        │
+         │         App           │
          │     (Port 3000)       │
          │                       │
-         │  - search_*           │
-         │  - get_document       │
-         │  - list_documents     │
+         │  - POST /mcp          │
+         │  - POST /webhook      │
+         │  - GET  /health       │
          └───────────┬───────────┘
                      │
                      ▼
@@ -255,17 +253,6 @@ docker-compose run mcp-server npm run reindex
          │                       │
          │  Vector similarity    │
          │  search               │
-         └───────────────────────┘
-                     ▲
-                     │
-         ┌───────────────────────┐
-         │      Indexer          │
-         │    (Port 3001)        │
-         │                       │
-         │  - GitLab sync        │
-         │  - Webhook listener   │
-         │  - Chunking           │
-         │  - Embedding          │
          └───────────────────────┘
                      ▲
                      │
@@ -292,6 +279,7 @@ docker-compose run mcp-server npm run reindex
 | `GITLAB_PROJECT_ID` | Yes | - | GitLab project path |
 | `GITLAB_ACCESS_TOKEN` | Yes | - | GitLab access token |
 | `GITLAB_BRANCH` | No | main | Branch to index |
+| `GITLAB_WEBHOOK_SECRET` | No | - | Secret for webhook signature verification |
 | `CHUNK_SIZE` | No | 1500 | Max tokens per chunk |
 | `CHUNK_OVERLAP` | No | 100 | Token overlap between chunks |
 
@@ -327,14 +315,26 @@ docker-compose run mcp-server npm run reindex
 # Install dependencies
 npm install
 
+# Run server with hot reload
+npm run dev
+
 # Run tests
 npm test
+
+# Run tests with coverage
+npm run test:coverage
 
 # Type check
 npm run lint
 
 # Build
 npm run build
+
+# Index documents
+npm run initial-load
+
+# Reindex all documents
+npm run reindex
 ```
 
 ## License
