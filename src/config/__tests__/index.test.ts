@@ -32,18 +32,6 @@ describe('config', () => {
     expect(config.port).toBe(8080);
   });
 
-  it('splits AUTH_TOKENS by comma and filters empty', async () => {
-    vi.stubEnv('AUTH_TOKENS', 'token1,token2,token3');
-    const config = await loadConfig();
-    expect(config.authTokens).toEqual(['token1', 'token2', 'token3']);
-  });
-
-  it('returns empty array when AUTH_TOKENS is empty', async () => {
-    vi.stubEnv('AUTH_TOKENS', '');
-    const config = await loadConfig();
-    expect(config.authTokens).toEqual([]);
-  });
-
   it('reads CHUNK_SIZE and CHUNK_OVERLAP as integers', async () => {
     vi.stubEnv('CHUNK_SIZE', '2000');
     vi.stubEnv('CHUNK_OVERLAP', '200');

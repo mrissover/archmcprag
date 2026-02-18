@@ -2,7 +2,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import express from 'express';
 import { config } from './config/index.js';
-import { authenticateRequest } from './server/auth/bearer.js';
 import { searchArchitectureDocs, searchSchema } from './server/tools/search.js';
 import { getDocument, getDocumentSchema } from './server/tools/get-document.js';
 import { listDocuments, listDocumentsSchema } from './server/tools/list-documents.js';
@@ -89,14 +88,8 @@ export async function startServer(): Promise<ReturnType<express.Application['lis
     res.json({ status: 'ok', service: 'arch-docs-mcp' });
   });
 
-  // MCP endpoint with authentication
+  // MCP endpoint
   app.all('/mcp', async (req, res) => {
-    if (!authenticateRequest(req)) {
-      logger.warn('Unauthorized MCP request');
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
@@ -106,11 +99,7 @@ export async function startServer(): Promise<ReturnType<express.Application['lis
   });
 
   // Handle MCP session management
-  app.delete('/mcp', async (req, res) => {
-    if (!authenticateRequest(req)) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
+  app.delete('/mcp', async (_req, res) => {
     res.status(200).json({ status: 'session closed' });
   });
 
