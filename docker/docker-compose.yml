@@ -40,7 +40,7 @@ services:
       - ollama_data:/root/.ollama
     environment:
       - OLLAMA_HOST=ollama:11434
-    entrypoint: ["sh", "-c", "ollama pull $${OLLAMA_EMBEDDING_MODEL:-mxbai-embed-large}"]
+    entrypoint: ["sh", "-c", "ollama pull $${OLLAMA_EMBEDDING_MODEL:-bge-m3}"]
     depends_on:
       ollama:
         condition: service_healthy
