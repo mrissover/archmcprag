@@ -1,7 +1,5 @@
 import { z } from 'zod';
-import { createVectorStore } from '../../vectorstore/interface.js';
-import { createEmbeddingClient } from '../../indexer/embedding/client.js';
-import { config } from '../../config/index.js';
+import { getVectorStore, getEmbeddingClient } from '../../shared.js';
 import type { SearchResponse, SearchFilter } from '../../types/index.js';
 
 export const searchSchema = z.object({
@@ -16,8 +14,8 @@ export const searchSchema = z.object({
 export type SearchInput = z.infer<typeof searchSchema>;
 
 export async function searchArchitectureDocs(input: SearchInput): Promise<SearchResponse> {
-  const vectorStore = await createVectorStore(config.vectorStore);
-  const embeddingClient = createEmbeddingClient();
+  const vectorStore = await getVectorStore();
+  const embeddingClient = getEmbeddingClient();
 
   // Generate embedding for the query
   const queryVector = await embeddingClient.embed(input.query);

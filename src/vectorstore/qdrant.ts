@@ -53,7 +53,7 @@ export async function createQdrantStore(): Promise<VectorStore> {
       const points = records.map(record => ({
         id: record.id,
         vector: record.vector,
-        payload: record.payload as Record<string, unknown>,
+        payload: record.payload as unknown as Record<string, unknown>,
       }));
 
       await client.upsert(collectionName, {

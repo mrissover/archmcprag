@@ -4,17 +4,22 @@ import { createEmbeddingClient } from '../embedding/client.js';
 import { embedChunks } from '../embedding/batch.js';
 import { createVectorStore } from '../../vectorstore/interface.js';
 import { config } from '../../config/index.js';
-import type { GitLabFile, DocumentChunk } from '../../types/index.js';
+import type { GitLabFile, DocumentChunk, VectorStore, EmbeddingClient } from '../../types/index.js';
 import pino from 'pino';
 
 const logger = pino({ name: 'sync' });
 
-export async function fullSync(): Promise<void> {
+export interface SyncDeps {
+  vectorStore?: VectorStore;
+  embeddingClient?: EmbeddingClient;
+}
+
+export async function fullSync(deps?: SyncDeps): Promise<void> {
   logger.info('Starting full sync');
 
   const gitlab = new GitLabClient();
-  const vectorStore = await createVectorStore(config.vectorStore);
-  const embeddingClient = createEmbeddingClient();
+  const vectorStore = deps?.vectorStore ?? await createVectorStore(config.vectorStore);
+  const embeddingClient = deps?.embeddingClient ?? createEmbeddingClient();
 
   await vectorStore.initialize();
 
@@ -48,9 +53,9 @@ export async function fullSync(): Promise<void> {
   logger.info(`Full sync complete. Indexed ${totalChunks} chunks from ${filePaths.length} files`);
 }
 
-export async function syncFile(file: GitLabFile): Promise<void> {
-  const vectorStore = await createVectorStore(config.vectorStore);
-  const embeddingClient = createEmbeddingClient();
+export async function syncFile(file: GitLabFile, deps?: SyncDeps): Promise<void> {
+  const vectorStore = deps?.vectorStore ?? await createVectorStore(config.vectorStore);
+  const embeddingClient = deps?.embeddingClient ?? createEmbeddingClient();
 
   // Delete existing chunks for this file
   await vectorStore.deleteByDocumentPath(file.path);
@@ -65,8 +70,8 @@ export async function syncFile(file: GitLabFile): Promise<void> {
   logger.info(`Synced file: ${file.path} (${chunks.length} chunks)`);
 }
 
-export async function deleteFile(path: string): Promise<void> {
-  const vectorStore = await createVectorStore(config.vectorStore);
+export async function deleteFile(path: string, deps?: SyncDeps): Promise<void> {
+  const vectorStore = deps?.vectorStore ?? await createVectorStore(config.vectorStore);
   await vectorStore.deleteByDocumentPath(path);
   logger.info(`Deleted file from index: ${path}`);
 }

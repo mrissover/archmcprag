@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { createVectorStore } from '../../vectorstore/interface.js';
-import { config } from '../../config/index.js';
+import { getVectorStore } from '../../shared.js';
 import type { GetDocumentResponse } from '../../types/index.js';
 import { countWords } from '../../indexer/chunking/strategies.js';
 
@@ -11,7 +10,7 @@ export const getDocumentSchema = z.object({
 export type GetDocumentInput = z.infer<typeof getDocumentSchema>;
 
 export async function getDocument(input: GetDocumentInput): Promise<GetDocumentResponse | { error: string }> {
-  const vectorStore = await createVectorStore(config.vectorStore);
+  const vectorStore = await getVectorStore();
 
   // Get all chunks for this document
   const chunks = await vectorStore.getByDocumentPath(input.path);

@@ -45,16 +45,12 @@ export async function createChromaStore(): Promise<VectorStore> {
     },
 
     async search(vector: number[], limit: number, filter?: SearchFilter): Promise<VectorSearchResult[]> {
-      const whereClause: Record<string, unknown> = {};
-
-      if (filter?.category) {
-        whereClause.category = filter.category;
-      }
+      const whereClause = filter?.category ? { category: filter.category } : undefined;
 
       const results = await collection.query({
         queryEmbeddings: [vector],
         nResults: limit,
-        where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
+        where: whereClause as Record<string, unknown> as import('chromadb').Where | undefined,
       });
 
       if (!results.ids[0]) return [];
