@@ -14,7 +14,7 @@ services:
       - QDRANT_URL=http://localhost:6333
     depends_on:
       qdrant:
-        condition: service_healthy
+        condition: service_started
       ollama-pull:
         condition: service_completed_successfully
     restart: unless-stopped
@@ -53,10 +53,7 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:6333/healthz || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      disable: true
     restart: unless-stopped
 
   # Optional: Run initial indexing
@@ -73,7 +70,7 @@ services:
       - QDRANT_URL=http://localhost:6333
     depends_on:
       qdrant:
-        condition: service_healthy
+        condition: service_started
       ollama-pull:
         condition: service_completed_successfully
     profiles:
