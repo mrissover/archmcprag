@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ../.env
+      - .env
     environment:
       - PORT=3000
       - HOST=0.0.0.0
@@ -38,7 +38,7 @@ services:
       dockerfile: docker/Dockerfile
     command: ["node", "dist/index.js", "--initial-load"]
     env_file:
-      - ../.env
+      - .env
     environment:
       - VECTOR_STORE=qdrant
       - QDRANT_URL=http://qdrant:6333
