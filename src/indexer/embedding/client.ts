@@ -9,7 +9,42 @@ export function createEmbeddingClient(): EmbeddingClient {
   if (config.embedding.provider === 'azure') {
     return createAzureClient();
   }
+  if (config.embedding.provider === 'ollama') {
+    return createOllamaClient();
+  }
   return createOpenAIClient();
+}
+
+function createOllamaClient(): EmbeddingClient {
+  const client = new OpenAI({
+    apiKey: 'ollama',
+    baseURL: `${config.embedding.ollama.url}/v1`,
+  });
+  const model = config.embedding.ollama.model;
+
+  return {
+    async embed(text: string): Promise<number[]> {
+      const response = await client.embeddings.create({ model, input: text });
+      return response.data[0].embedding;
+    },
+
+    async embedBatch(texts: string[]): Promise<number[][]> {
+      if (texts.length === 0) return [];
+
+      const batchSize = 100;
+      const results: number[][] = [];
+
+      for (let i = 0; i < texts.length; i += batchSize) {
+        const batch = texts.slice(i, i + batchSize);
+        logger.info(`Embedding batch ${i / batchSize + 1}/${Math.ceil(texts.length / batchSize)}`);
+
+        const response = await client.embeddings.create({ model, input: batch });
+        results.push(...response.data.map(d => d.embedding));
+      }
+
+      return results;
+    },
+  };
 }
 
 function createOpenAIClient(): EmbeddingClient {

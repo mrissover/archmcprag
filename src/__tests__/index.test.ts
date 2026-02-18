@@ -4,6 +4,7 @@ import { z } from 'zod';
 const { mockVectorStore } = vi.hoisted(() => ({
   mockVectorStore: {
     initialize: vi.fn(),
+    reset: vi.fn(),
     upsert: vi.fn(),
     search: vi.fn(),
     delete: vi.fn(),

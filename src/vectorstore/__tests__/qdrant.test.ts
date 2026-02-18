@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockGetCollections = vi.fn();
 const mockCreateCollection = vi.fn();
+const mockDeleteCollection = vi.fn();
 const mockCreatePayloadIndex = vi.fn();
 const mockUpsert = vi.fn();
 const mockSearch = vi.fn();
@@ -12,6 +13,7 @@ vi.mock('@qdrant/js-client-rest', () => ({
   QdrantClient: class MockQdrantClient {
     getCollections = mockGetCollections;
     createCollection = mockCreateCollection;
+    deleteCollection = mockDeleteCollection;
     createPayloadIndex = mockCreatePayloadIndex;
     upsert = mockUpsert;
     search = mockSearch;
@@ -88,6 +90,37 @@ describe('QdrantStore', () => {
         field_name: 'document_path',
         field_schema: 'keyword',
       });
+    });
+  });
+
+  describe('reset', () => {
+    it('drops existing collection and reinitializes', async () => {
+      mockGetCollections
+        .mockResolvedValueOnce({ collections: [{ name: 'architecture_docs' }] })
+        .mockResolvedValueOnce({ collections: [] });
+      mockDeleteCollection.mockResolvedValue({});
+      mockCreateCollection.mockResolvedValue({});
+      mockCreatePayloadIndex.mockResolvedValue({});
+
+      const store = await createQdrantStore();
+      await store.reset();
+
+      expect(mockDeleteCollection).toHaveBeenCalledWith('architecture_docs');
+      expect(mockCreateCollection).toHaveBeenCalled();
+    });
+
+    it('skips drop when collection does not exist', async () => {
+      mockGetCollections
+        .mockResolvedValueOnce({ collections: [] })
+        .mockResolvedValueOnce({ collections: [] });
+      mockCreateCollection.mockResolvedValue({});
+      mockCreatePayloadIndex.mockResolvedValue({});
+
+      const store = await createQdrantStore();
+      await store.reset();
+
+      expect(mockDeleteCollection).not.toHaveBeenCalled();
+      expect(mockCreateCollection).toHaveBeenCalled();
     });
   });
 

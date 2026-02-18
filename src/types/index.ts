@@ -105,6 +105,7 @@ export interface EmbeddingClient {
 // Vector store interface
 export interface VectorStore {
   initialize(): Promise<void>;
+  reset(): Promise<void>;
   upsert(records: VectorRecord[]): Promise<void>;
   search(vector: number[], limit: number, filter?: SearchFilter): Promise<VectorSearchResult[]>;
   delete(ids: string[]): Promise<void>;

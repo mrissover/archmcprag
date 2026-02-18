@@ -22,6 +22,12 @@ export async function createChromaStore(): Promise<VectorStore> {
       logger.info(`Collection ${collectionName} ready`);
     },
 
+    async reset(): Promise<void> {
+      logger.info(`Deleting collection: ${collectionName}`);
+      await client.deleteCollection({ name: collectionName });
+      await store.initialize();
+    },
+
     async upsert(records: VectorRecord[]): Promise<void> {
       if (records.length === 0) return;
 
