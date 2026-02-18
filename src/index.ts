@@ -26,13 +26,12 @@ async function runInitialLoad(): Promise<void> {
   }
 }
 
-export async function startServer(): Promise<ReturnType<express.Application['listen']>> {
-  // Initialize vector store at startup
-  const vectorStore = await getVectorStore();
-  await vectorStore.initialize();
-  logger.info('Vector store initialized');
-
-  // Create MCP server and register tools
+/**
+ * Creates a fresh MCP server with all tools registered.
+ * Each client session gets its own server+transport pair because
+ * the MCP SDK only allows one initialize per server instance.
+ */
+function createMcpServer(): McpServer {
   const server = new McpServer({
     name: 'arch-docs-mcp',
     version: '1.0.0',
@@ -77,12 +76,17 @@ export async function startServer(): Promise<ReturnType<express.Application['lis
     }
   );
 
-  // Stateful transport — session IDs allow the multi-step MCP handshake
-  // (initialize → initialized → tools/list) to work across HTTP requests
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: () => randomUUID(),
-  });
-  await server.connect(transport);
+  return server;
+}
+
+export async function startServer(): Promise<ReturnType<express.Application['listen']>> {
+  // Initialize vector store at startup
+  const vectorStore = await getVectorStore();
+  await vectorStore.initialize();
+  logger.info('Vector store initialized');
+
+  // Session map: each client gets its own MCP server+transport pair
+  const sessions = new Map<string, StreamableHTTPServerTransport>();
 
   // Create Express app
   const app = express();
@@ -95,8 +99,41 @@ export async function startServer(): Promise<ReturnType<express.Application['lis
     res.json({ status: 'ok', service: 'arch-docs-mcp' });
   });
 
-  // MCP endpoint (GET for SSE stream, POST for messages, DELETE for session close)
+  // MCP endpoint — route by session ID
   app.all('/mcp', async (req, res) => {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+
+    // Existing session — route to its transport
+    if (sessionId) {
+      const transport = sessions.get(sessionId);
+      if (!transport) {
+        res.status(404).json({ jsonrpc: '2.0', error: { code: -32000, message: 'Session not found' }, id: null });
+        return;
+      }
+      await transport.handleRequest(req, res, req.body);
+      return;
+    }
+
+    // No session ID — new client, create a dedicated server+transport
+    const server = createMcpServer();
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+      onsessioninitialized: (id) => {
+        sessions.set(id, transport);
+        logger.info({ sessionId: id, activeSessions: sessions.size }, 'MCP session created');
+      },
+    });
+
+    transport.onclose = () => {
+      const id = transport.sessionId;
+      if (id) {
+        sessions.delete(id);
+        logger.info({ sessionId: id, activeSessions: sessions.size }, 'MCP session closed');
+      }
+      server.close();
+    };
+
+    await server.connect(transport);
     await transport.handleRequest(req, res, req.body);
   });
 
