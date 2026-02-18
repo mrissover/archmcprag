@@ -192,7 +192,11 @@ async function main(): Promise<void> {
   await startServer();
 }
 
-main().catch((error) => {
-  logger.error({ err: error }, 'Failed to start');
-  process.exit(1);
-});
+// Only auto-start when run directly (not when imported by tests)
+const isDirectRun = process.argv[1]?.endsWith('index.js') || process.argv[1]?.endsWith('index.ts');
+if (isDirectRun) {
+  main().catch((error) => {
+    logger.error({ err: error }, 'Failed to start');
+    process.exit(1);
+  });
+}

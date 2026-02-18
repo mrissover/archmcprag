@@ -155,4 +155,21 @@ describe('startServer', () => {
 
     expect(body.status).toBe('ignored');
   });
+
+  it('webhook endpoint rejects invalid signature', async () => {
+    const { verifyWebhookSignature } = await import('../indexer/gitlab/webhook.js');
+    vi.mocked(verifyWebhookSignature).mockReturnValueOnce(false);
+
+    server = await startServer();
+    await waitForListening(server);
+    const port = getPort(server);
+
+    const res = await fetch(`http://localhost:${port}/webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'push', commits: [] }),
+    });
+
+    expect(res.status).toBe(401);
+  });
 });
