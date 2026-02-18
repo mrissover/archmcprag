@@ -8,7 +8,7 @@ const logger = pino({ name: 'qdrant' });
 export async function createQdrantStore(): Promise<VectorStore> {
   const client = new QdrantClient({
     url: config.qdrant.url,
-    apiKey: config.qdrant.apiKey,
+    ...(config.qdrant.apiKey ? { apiKey: config.qdrant.apiKey } : {}),
   });
 
   const collectionName = config.qdrant.collectionName;
