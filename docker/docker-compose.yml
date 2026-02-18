@@ -17,6 +17,14 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
   qdrant:
     image: qdrant/qdrant:latest
     ports:
@@ -48,3 +56,4 @@ services:
 
 volumes:
   qdrant_data:
+  ollama_data:

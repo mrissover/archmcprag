@@ -41,14 +41,14 @@ export const config = {
     openai: {
       apiKey: process.env.OPENAI_API_KEY,
       baseUrl: process.env.OPENAI_BASE_URL,
-      model: 'text-embedding-3-small',
+      model: optional('EMBEDDING_MODEL', 'text-embedding-3-small'),
     },
     azure: {
       endpoint: process.env.AZURE_OPENAI_ENDPOINT,
       apiKey: process.env.AZURE_OPENAI_API_KEY,
       deployment: process.env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT,
     },
-    dimensions: 1536,
+    dimensions: optionalInt('EMBEDDING_DIMENSIONS', 1536),
   },
 
   // GitLab
