@@ -11,7 +11,7 @@ services:
       - PORT=3000
       - HOST=0.0.0.0
       - VECTOR_STORE=qdrant
-      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_URL=http://localhost:6333
     depends_on:
       qdrant:
         condition: service_healthy
@@ -25,26 +25,24 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      disable: true
     restart: unless-stopped
 
   # Optional: Run initial indexing
   initial-load:
+    network_mode: host
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    command: ["node", "dist/index.js", "--initial-load"]
+    command: ["sh", "-c", "sleep 10 && node dist/index.js --initial-load"]
     env_file:
       - .env
     environment:
       - VECTOR_STORE=qdrant
-      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_URL=http://localhost:6333
     depends_on:
       qdrant:
-        condition: service_healthy
+        condition: service_started
     profiles:
       - init
 
